@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Menu, X, Home, User, Users, Trophy, Bell, HelpCircle, Settings, LogOut, Cloud, CloudRain, Sun, Moon } from 'lucide-react'
+import { Menu, X, Home, User, Users, Trophy, Bell, HelpCircle, Settings, LogOut, Cloud, CloudRain, Sun, Moon, Sunrise } from 'lucide-react'
 
 export default function MobileLayout({ children, userName, onToggleSettings }) {
   const navigate = useNavigate();
@@ -98,15 +98,38 @@ export default function MobileLayout({ children, userName, onToggleSettings }) {
   }, []);
 
   const getWeatherIcon = () => {
+    const isNightTime = ["night", "midnight", "predawn", "twilight"].includes(timeOfDay);
+    const isDawnDusk = ["dawn", "sunrise", "sunset", "twilight"].includes(timeOfDay);
+    
     if (currentWeather.toLowerCase().includes("rain")) {
       return <CloudRain className="text-blue-500" size={20} />
     } else if (currentWeather.toLowerCase().includes("cloud")) {
-      return <Cloud className="text-blue-400" size={20} />
-    } else if (timeOfDay === "night") {
+      return <Cloud className={isNightTime ? "text-gray-400" : "text-blue-400"} size={20} />
+    } else if (isNightTime) {
       return <Moon className="text-indigo-400" size={20} />
+    } else if (isDawnDusk) {
+      return <Sunrise className="text-orange-400" size={20} />
     } else {
       return <Sun className="text-yellow-400" size={20} />
     }
+  }
+
+  const getEnhancedWeatherDisplay = () => {
+    const isNightTime = ["night", "midnight", "predawn", "twilight"].includes(timeOfDay);
+    const isDawnDusk = ["dawn", "sunrise", "sunset", "twilight"].includes(timeOfDay);
+    const weather = currentWeather.toLowerCase();
+    
+    // For sunny weather at night, show as "Clear Night"
+    if (weather === "sunny" && isNightTime) {
+      return "Clear Night";
+    }
+    
+    // For sunny weather at dawn/dusk, show as "Clear Sky"
+    if (weather === "sunny" && isDawnDusk) {
+      return "Clear Sky";
+    }
+    
+    return currentWeather;
   }
 
   const menuItems = [
@@ -132,7 +155,7 @@ export default function MobileLayout({ children, userName, onToggleSettings }) {
         </div>
         <div className="flex items-center gap-2">
           {getWeatherIcon()}
-          <span className="text-sm font-sniglet">{currentWeather}</span>
+          <span className="text-sm font-sniglet">{getEnhancedWeatherDisplay()}</span>
           <span className="text-sm font-sniglet border-l border-gray-300 pl-2">{currentTime}</span>
         </div>
       </header>
