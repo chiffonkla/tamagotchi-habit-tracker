@@ -73,7 +73,7 @@ export function getSeasonIcon(season) {
       return "🌸"
     case "summer":
       return "☀️"
-    case "fall":
+    case "autumn":
       return "🍂"
     default:
       return "🌸"
