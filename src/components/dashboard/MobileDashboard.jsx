@@ -276,7 +276,7 @@ export default function MobileDashboard() {
     };
 
     checkPetStatus();
-  }, [navigate]);
+  }, []); // Remove navigate dependency to prevent infinite re-renders
 
   // Move fetchProfileData outside useEffect
   const fetchProfileData = async () => {
@@ -531,7 +531,7 @@ export default function MobileDashboard() {
     };
 
     fetchHabits();
-  }, [navigate]);
+  }, []); // Remove navigate dependency to prevent infinite re-renders
 
   const calculateXPForNextLevel = (currentLevel) => {
     // Base XP requirement increases by 50 XP each level
@@ -741,19 +741,48 @@ export default function MobileDashboard() {
   }
 
   const getWeatherIcon = () => {
+    // Use enhanced weather logic that considers time of day
+    const isNightTime = ["night", "midnight", "predawn", "twilight"].includes(timeOfDay);
+    const isDawnDusk = ["dawn", "sunrise", "sunset", "twilight"].includes(timeOfDay);
+    
     if (currentWeather.toLowerCase().includes("thunder")) {
       return <CloudLightning className="text-indigo-500" size={20} />
     } else if (currentWeather.toLowerCase().includes("rain")) {
       return <CloudRain className="text-blue-500" size={20} />
     } else if (currentWeather.toLowerCase().includes("cloud")) {
-      return <Cloud className="text-blue-400" size={20} />
+      return <Cloud className={isNightTime ? "text-gray-400" : "text-blue-400"} size={20} />
     } else if (currentWeather.toLowerCase().includes("wind")) {
       return <Wind className="text-gray-400" size={20} />
     } else if (currentWeather.toLowerCase().includes("snow")) {
       return <Snowflake className="text-blue-300" size={20} />
     } else {
-      return <Sun className="text-yellow-400" size={20} />
+      // For sunny/clear weather, show moon at night, sun during day
+      if (isNightTime) {
+        return <Moon className="text-indigo-300" size={20} />
+      } else if (isDawnDusk) {
+        return <Sunrise className="text-orange-400" size={20} />
+      } else {
+        return <Sun className="text-yellow-400" size={20} />
+      }
     }
+  }
+
+  const getEnhancedWeatherDisplay = () => {
+    const isNightTime = ["night", "midnight", "predawn", "twilight"].includes(timeOfDay);
+    const isDawnDusk = ["dawn", "sunrise", "sunset", "twilight"].includes(timeOfDay);
+    const weather = currentWeather.toLowerCase();
+    
+    // For sunny weather at night, show as "Clear Night"
+    if (weather === "sunny" && isNightTime) {
+      return "Clear Night";
+    }
+    
+    // For sunny weather at dawn/dusk, show as "Clear Sky"
+    if (weather === "sunny" && isDawnDusk) {
+      return "Clear Sky";
+    }
+    
+    return currentWeather;
   }
 
   const getTimeOfDayIcon = () => {
@@ -1213,7 +1242,7 @@ export default function MobileDashboard() {
         </div>
         <div className="flex items-center gap-2">
           {getWeatherIcon()}
-          <span className="text-sm font-sniglet">{currentWeather}</span>
+          <span className="text-sm font-sniglet">{getEnhancedWeatherDisplay()}</span>
           <span className="text-sm font-sniglet border-l border-gray-300 pl-2">{currentTime}</span>
         </div>
       </header>
