@@ -205,7 +205,7 @@ export default function DashboardRedesign() {
   // Load profile data on component mount
   useEffect(() => {
     fetchProfileData();
-  }, [navigate]);
+  }, []); // Remove navigate dependency to prevent infinite re-renders
 
   // Check if the user has a pet
   useEffect(() => {
@@ -957,6 +957,7 @@ export default function DashboardRedesign() {
             Error with location: {locationError}
           </div>
         )}
+        
         {/* Main Content */}
         <main className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 px-8 py-4 mt-8 max-w-none mx-auto w-full">
           {/* Left Column */}
@@ -969,6 +970,7 @@ export default function DashboardRedesign() {
                 currentWeather={currentWeather}
                 dailyMessage={getDailyMessage()}
                 petStatusMessage={getPetStatusMessage()}
+                timeOfDay={timeOfDay}
               />
             </div>
 
