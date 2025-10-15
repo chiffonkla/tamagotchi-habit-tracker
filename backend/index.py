@@ -12,7 +12,7 @@ sys.path.append(os.path.dirname(__file__))
 load_dotenv()
 app = Flask(__name__)
 CORS(app, supports_credentials=True, origins=[
-    "https://tama-habit.netlify.app",
+    "https://tama-habit.netlify.app",  
     "https://*.netlify.app",  # For other Netlify deployments
     "http://localhost:5173", # For local frontend development
     "http://127.0.0.1:5173",  # Optional: For localhost with IP
@@ -37,7 +37,9 @@ def cookie_check(session_cookie):
     Validates the session cookie and retrieves the associated user.
     Returns the user object if valid, or a tuple with an error response and status code if invalid.
     """
+    print(f"DEBUG: Received session cookie: {session_cookie}")
     if not session_cookie:
+        print("DEBUG: No session cookie provided")
         return jsonify({
             "status": "error",
             "message": "Authentication required."
@@ -216,7 +218,16 @@ def authenticate_user():
             "status": "ok",
             "message": "Authentication successful."
         })
-        response.set_cookie("session", cookie_value, secure=True, httponly=True, samesite="None", expires=expires_at)
+        response.set_cookie(
+            "session", 
+            cookie_value, 
+            secure=True, 
+            httponly=True, 
+            samesite="None", 
+            expires=expires_at,
+            domain=None,
+            path="/"
+        )
 
         return response, 200
 
@@ -2847,7 +2858,8 @@ def logout():
             expires=0,
             secure=True,
             httponly=True,
-            samesite="None"
+            samesite="None",
+            domain=None
         )
         
         return response, 200
