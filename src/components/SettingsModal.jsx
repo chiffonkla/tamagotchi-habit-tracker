@@ -16,8 +16,30 @@ export default function SettingsModal({ isOpen, onClose, userName, setUserName, 
     if (isOpen) {
       setOriginalName(userName)
       setOriginalTimezone(timezone)
+      fetchCurrentLocation()
     }
   }, [isOpen, userName, timezone])
+
+  const fetchCurrentLocation = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_DOMAIN}/api/get-location`, {
+        method: "GET",
+        credentials: "include",
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data.status === "ok" && data.location) {
+          setLatitude(data.location.latitude.toString())
+          setLongitude(data.location.longitude.toString())
+          setAccuracy(data.location.accuracy)
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching current location:", error)
+      // Don't show error to user, just leave fields empty
+    }
+  }
 
   const handleSetLocationAutomatically = () => {
     if (!navigator.geolocation) {
