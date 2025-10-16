@@ -18,7 +18,4 @@ pet's environment
 - Responsive design for all devices
 - PWA support for offline access
 
-## Live Demo
-
-Visit the live application at: [https://tama-habit.netlify.app/](https://tama-habit.netlify.app/)
 
