@@ -293,6 +293,33 @@ export default function DashboardRedesign() {
         setTimeOfDay("night");
       }
 
+      // Update weather background based on current time and weather
+      const isNightTime = currentHour >= 20 || currentHour <= 5;
+      const weather = currentWeather.toLowerCase();
+      
+      switch (weather) {
+        case "rainy":
+          setWeatherImage(isNightTime ? rainyNightBg : rainyBg);
+          break;
+        case "cloudy":
+          setWeatherImage(isNightTime ? cloudyNightBg : cloudyBg);
+          break;
+        case "snowy":
+          setWeatherImage(isNightTime ? snowyNightBg : snowBg);
+          break;
+        case "sunny":
+          setWeatherImage(isNightTime ? clearNightBg : sunnyBg);
+          break;
+        case "windy":
+          setWeatherImage(isNightTime ? windyNightBg : windyBg);
+          break;
+        case "thunder":
+          setWeatherImage(isNightTime ? thunderNightBg : thunderBg);
+          break;
+        default:
+          setWeatherImage(isNightTime ? clearNightBg : sunnyBg);
+      }
+
       // Set season based on month
       const month = now.getMonth(); // 0-11
       if (month >= 2 && month <= 4) {
@@ -692,6 +719,15 @@ export default function DashboardRedesign() {
     };
 
     fetchWeather();
+  }, []);
+
+  // Refresh weather data every 30 minutes to keep it in sync
+  useEffect(() => {
+    const weatherInterval = setInterval(() => {
+      fetchWeather();
+    }, 30 * 60 * 1000); // 30 minutes
+
+    return () => clearInterval(weatherInterval);
   }, []);
 
   const [dailyMessage, setDailyMessage] = useState("");
