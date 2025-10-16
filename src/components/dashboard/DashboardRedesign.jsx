@@ -26,7 +26,7 @@ import sunnyBg from "../../assets/weather_bg/sunny.jpeg";
 import windyBg from "../../assets/weather_bg/windy.gif";
 import thunderBg from "../../assets/weather_bg/thunder.gif";
 // Night-time backgrounds
-import clearNightBg from "../../assets/weather_bg/clear-night.jpg";
+import clearNightBg from "../../assets/weather_bg/clear-night.jpeg";
 import cloudyNightBg from "../../assets/weather_bg/cloudy-night.gif";
 import rainyNightBg from "../../assets/weather_bg/rainy-night.gif";
 import snowyNightBg from "../../assets/weather_bg/snowy-night.gif";
