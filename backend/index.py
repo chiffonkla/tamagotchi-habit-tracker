@@ -11,22 +11,14 @@ import sys
 sys.path.append(os.path.dirname(__file__))
 load_dotenv()
 app = Flask(__name__)
-# Get allowed origins from environment or use defaults
-allowed_origins = os.environ.get("ALLOWED_ORIGINS", "").split(",") if os.environ.get("ALLOWED_ORIGINS") else [
+CORS(app, supports_credentials=True, origins=[
     "https://tama-habit.netlify.app",  
     "https://*.netlify.app",  # For other Netlify deployments
     "http://localhost:5173", # For local frontend development
     "http://127.0.0.1:5173",  # Optional: For localhost with IP
     "https://*.tamagotchi.moekyun.me", # production
     "https://tamagotchi.moekyun.me"  # Added specific domain without wildcard
-]
-
-# For production, allow all origins to handle different deployment domains
-# This is necessary because frontend and backend may be on different domains
-if os.environ.get("FLASK_ENV") == "production":
-    CORS(app, supports_credentials=True, origins="*")
-else:
-    CORS(app, supports_credentials=True, origins=allowed_origins)
+])
 
 def create_database_connection():
     """
@@ -226,34 +218,16 @@ def authenticate_user():
             "status": "ok",
             "message": "Authentication successful."
         })
-        # Determine if we're in production (HTTPS) or development (HTTP)
-        is_production = request.is_secure or os.environ.get("FLASK_ENV") == "production"
-        
-        # For cross-domain requests (frontend and backend on different domains),
-        # we need to use samesite="None" with secure=True
-        if is_production:
-            response.set_cookie(
-                "session", 
-                cookie_value, 
-                secure=True,  # Required for samesite="None"
-                httponly=True, 
-                samesite="None",  # Required for cross-domain requests
-                expires=expires_at,
-                domain=None,
-                path="/"
-            )
-        else:
-            # For local development (same domain)
-            response.set_cookie(
-                "session", 
-                cookie_value, 
-                secure=False,  # HTTP is fine for local
-                httponly=True, 
-                samesite="Lax",  # Lax is fine for same-domain
-                expires=expires_at,
-                domain=None,
-                path="/"
-            )
+        response.set_cookie(
+            "session", 
+            cookie_value, 
+            secure=True, 
+            httponly=True, 
+            samesite="None", 
+            expires=expires_at,
+            domain=None,
+            path="/"
+        )
 
         return response, 200
 
@@ -597,7 +571,6 @@ def has_location():
     finally:
         db.close()
 
-
 @app.route("/api/get-location", methods=["GET"])
 def get_location():
     """
@@ -681,6 +654,104 @@ def set_location():
             "status": "ok",
             "message": "Location updated successfully."
         }), 200
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+    finally:
+        db.close()
+
+@app.route("/api/weather/forecast", methods=["GET"])
+def get_weather_forecast():
+    """
+    Retrieves a 7-day weather forecast based on the user's geolocation.
+    Requires a valid session cookie and a geolocation entry in the database.
+    """
+    import requests
+    def _get_weather_str_from_code(code: int):
+        if code >= 0 and code <= 3:
+            return "sunny"
+        elif code == 45 or code == 48:
+            return "cloudy"
+        elif code >= 95 and code <= 99:
+            return "thunder"
+        elif (code >= 51 and code <= 67) or (code >= 80 and code <= 82):
+            return "rainy"
+        elif code >= 71 and code <= 77:
+            return "snowy"
+        else:
+            return "windy"
+
+    def _get_weather_forecast_for_coordinate(longitude: int, latitude: int):
+        url = f"https://api.open-meteo.com/v1/forecast?longitude={str(longitude)}&latitude={str(latitude)}&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto"
+        print(f"Forecast URL: {url}")
+        response = requests.get(url)
+        if response.status_code == 200:
+            response_data = response.json()
+            print(f"Forecast response: {response_data}")
+
+            # Process the forecast data
+            forecast = []
+            daily_data = response_data.get("daily", {})
+            weather_codes = daily_data.get("weather_code", [])
+            temp_max = daily_data.get("temperature_2m_max", [])
+            temp_min = daily_data.get("temperature_2m_min", [])
+            dates = daily_data.get("time", [])
+
+            for i in range(min(7, len(weather_codes))):  # Get 7 days max
+                forecast.append({
+                    "date": dates[i] if i < len(dates) else None,
+                    "weather": _get_weather_str_from_code(weather_codes[i]),
+                    "temp_max": temp_max[i] if i < len(temp_max) else None,
+                    "temp_min": temp_min[i] if i < len(temp_min) else None,
+                    "day_name": _get_day_name(dates[i]) if i < len(dates) else None
+                })
+
+            return forecast
+        else:
+            raise Exception(f"Failed to fetch forecast data: {response.status_code}")
+
+    def _get_day_name(date_str):
+        """Convert date string to day name"""
+        from datetime import datetime
+        try:
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+            return date_obj.strftime("%A")
+        except:
+            return "Unknown"
+
+    session_cookie = request.cookies.get("session")
+    error_response, status_code, user = cookie_check(session_cookie)
+    if error_response:
+        return error_response, status_code
+
+    db = create_database_connection()
+    try:
+        location = db.fetchone(
+            "SELECT latitude, longitude FROM user_geolocations WHERE user_id = %s",
+            (user["id"],)
+        )
+        if not location:
+            return jsonify({
+                "status": "error",
+                "message": "No geolocation data found for the user."
+            }), 404
+
+        latitude = location["latitude"]
+        longitude = location["longitude"]
+        try:
+            forecast = _get_weather_forecast_for_coordinate(longitude, latitude)
+            return jsonify({
+                "status": "ok",
+                "forecast": forecast
+            }), 200
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "message": str(e)
+            }), 500
 
     except Exception as e:
         return jsonify({
@@ -793,104 +864,6 @@ def get_weather():
             return jsonify({
                 "status": "ok",
                 "weather": weather
-            }), 200
-        except Exception as e:
-            return jsonify({
-                "status": "error",
-                "message": str(e)
-            }), 500
-
-    except Exception as e:
-        return jsonify({
-            "status": "error",
-            "message": str(e)
-        }), 500
-    finally:
-        db.close()
-
-@app.route("/api/weather/forecast", methods=["GET"])
-def get_weather_forecast():
-    """
-    Retrieves a 7-day weather forecast based on the user's geolocation.
-    Requires a valid session cookie and a geolocation entry in the database.
-    """
-    import requests
-    def _get_weather_str_from_code(code: int):
-        if code >= 0 and code <= 3:
-            return "sunny"
-        elif code == 45 or code == 48:
-            return "cloudy"
-        elif code >= 95 and code <= 99:
-            return "thunder"
-        elif (code >= 51 and code <= 67) or (code >= 80 and code <= 82):
-            return "rainy"
-        elif code >= 71 and code <= 77:
-            return "snowy"
-        else:
-            return "windy"
-
-    def _get_weather_forecast_for_coordinate(longitude: int, latitude: int):
-        url = f"https://api.open-meteo.com/v1/forecast?longitude={str(longitude)}&latitude={str(latitude)}&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto"
-        print(f"Forecast URL: {url}")
-        response = requests.get(url)
-        if response.status_code == 200:
-            response_data = response.json()
-            print(f"Forecast response: {response_data}")
-            
-            # Process the forecast data
-            forecast = []
-            daily_data = response_data.get("daily", {})
-            weather_codes = daily_data.get("weather_code", [])
-            temp_max = daily_data.get("temperature_2m_max", [])
-            temp_min = daily_data.get("temperature_2m_min", [])
-            dates = daily_data.get("time", [])
-            
-            for i in range(min(7, len(weather_codes))):  # Get 7 days max
-                forecast.append({
-                    "date": dates[i] if i < len(dates) else None,
-                    "weather": _get_weather_str_from_code(weather_codes[i]),
-                    "temp_max": temp_max[i] if i < len(temp_max) else None,
-                    "temp_min": temp_min[i] if i < len(temp_min) else None,
-                    "day_name": _get_day_name(dates[i]) if i < len(dates) else None
-                })
-            
-            return forecast
-        else:
-            raise Exception(f"Failed to fetch forecast data: {response.status_code}")
-
-    def _get_day_name(date_str):
-        """Convert date string to day name"""
-        from datetime import datetime
-        try:
-            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
-            return date_obj.strftime("%A")
-        except:
-            return "Unknown"
-
-    session_cookie = request.cookies.get("session")
-    error_response, status_code, user = cookie_check(session_cookie)
-    if error_response:
-        return error_response, status_code
-
-    db = create_database_connection()
-    try:
-        location = db.fetchone(
-            "SELECT latitude, longitude FROM user_geolocations WHERE user_id = %s",
-            (user["id"],)
-        )
-        if not location:
-            return jsonify({
-                "status": "error",
-                "message": "No geolocation data found for the user."
-            }), 404
-
-        latitude = location["latitude"]
-        longitude = location["longitude"]
-        try:
-            forecast = _get_weather_forecast_for_coordinate(longitude, latitude)
-            return jsonify({
-                "status": "ok",
-                "forecast": forecast
             }), 200
         except Exception as e:
             return jsonify({
@@ -3015,28 +2988,15 @@ def logout():
         })
         
         # Clear the session cookie
-        is_production = request.is_secure or os.environ.get("FLASK_ENV") == "production"
-        
-        if is_production:
-            response.set_cookie(
-                "session",
-                "",
-                expires=0,
-                secure=True,
-                httponly=True,
-                samesite="None",
-                domain=None
-            )
-        else:
-            response.set_cookie(
-                "session",
-                "",
-                expires=0,
-                secure=False,
-                httponly=True,
-                samesite="Lax",
-                domain=None
-            )
+        response.set_cookie(
+            "session",
+            "",
+            expires=0,
+            secure=True,
+            httponly=True,
+            samesite="None",
+            domain=None
+        )
         
         return response, 200
     except Exception as e:
@@ -3050,4 +3010,3 @@ def logout():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
-
