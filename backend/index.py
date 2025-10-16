@@ -21,7 +21,12 @@ allowed_origins = os.environ.get("ALLOWED_ORIGINS", "").split(",") if os.environ
     "https://tamagotchi.moekyun.me"  # Added specific domain without wildcard
 ]
 
-CORS(app, supports_credentials=True, origins=allowed_origins)
+# For production, allow all origins to handle different deployment domains
+# This is necessary because frontend and backend may be on different domains
+if os.environ.get("FLASK_ENV") == "production":
+    CORS(app, supports_credentials=True, origins="*")
+else:
+    CORS(app, supports_credentials=True, origins=allowed_origins)
 
 def create_database_connection():
     """
@@ -224,16 +229,31 @@ def authenticate_user():
         # Determine if we're in production (HTTPS) or development (HTTP)
         is_production = request.is_secure or os.environ.get("FLASK_ENV") == "production"
         
-        response.set_cookie(
-            "session", 
-            cookie_value, 
-            secure=is_production,  # Only secure in production
-            httponly=True, 
-            samesite="Lax" if not is_production else "None",  # Lax for HTTP, None for HTTPS
-            expires=expires_at,
-            domain=None,
-            path="/"
-        )
+        # For cross-domain requests (frontend and backend on different domains),
+        # we need to use samesite="None" with secure=True
+        if is_production:
+            response.set_cookie(
+                "session", 
+                cookie_value, 
+                secure=True,  # Required for samesite="None"
+                httponly=True, 
+                samesite="None",  # Required for cross-domain requests
+                expires=expires_at,
+                domain=None,
+                path="/"
+            )
+        else:
+            # For local development (same domain)
+            response.set_cookie(
+                "session", 
+                cookie_value, 
+                secure=False,  # HTTP is fine for local
+                httponly=True, 
+                samesite="Lax",  # Lax is fine for same-domain
+                expires=expires_at,
+                domain=None,
+                path="/"
+            )
 
         return response, 200
 
@@ -2997,15 +3017,26 @@ def logout():
         # Clear the session cookie
         is_production = request.is_secure or os.environ.get("FLASK_ENV") == "production"
         
-        response.set_cookie(
-            "session",
-            "",
-            expires=0,
-            secure=is_production,
-            httponly=True,
-            samesite="Lax" if not is_production else "None",
-            domain=None
-        )
+        if is_production:
+            response.set_cookie(
+                "session",
+                "",
+                expires=0,
+                secure=True,
+                httponly=True,
+                samesite="None",
+                domain=None
+            )
+        else:
+            response.set_cookie(
+                "session",
+                "",
+                expires=0,
+                secure=False,
+                httponly=True,
+                samesite="Lax",
+                domain=None
+            )
         
         return response, 200
     except Exception as e:
