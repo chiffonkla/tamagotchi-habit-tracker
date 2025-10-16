@@ -16,12 +16,14 @@ import About from './pages/About';
 import ViewProfile from './pages/ViewProfile';
 import Help from './pages/Help';
 import Settings from './pages/Settings';
+import ForecastPage from './pages/ForecastPage';
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/forecast" element={<ForecastPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/about" element={<About />} />
