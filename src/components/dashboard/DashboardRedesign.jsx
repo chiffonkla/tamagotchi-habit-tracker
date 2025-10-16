@@ -293,33 +293,6 @@ export default function DashboardRedesign() {
         setTimeOfDay("night");
       }
 
-      // Update weather background based on time of day
-      const isNightTime = currentHour >= 20 || currentHour <= 5;
-      const weather = currentWeather.toLowerCase();
-      
-      switch (weather) {
-        case "rainy":
-          setWeatherImage(isNightTime ? rainyNightBg : rainyBg);
-          break;
-        case "cloudy":
-          setWeatherImage(isNightTime ? cloudyNightBg : cloudyBg);
-          break;
-        case "snowy":
-          setWeatherImage(isNightTime ? snowyNightBg : snowBg);
-          break;
-        case "sunny":
-          setWeatherImage(isNightTime ? clearNightBg : sunnyBg);
-          break;
-        case "windy":
-          setWeatherImage(isNightTime ? windyNightBg : windyBg);
-          break;
-        case "thunder":
-          setWeatherImage(isNightTime ? thunderNightBg : thunderBg);
-          break;
-        default:
-          setWeatherImage(isNightTime ? clearNightBg : sunnyBg);
-      }
-
       // Set season based on month
       const month = now.getMonth(); // 0-11
       if (month >= 2 && month <= 4) {
