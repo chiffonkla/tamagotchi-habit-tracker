@@ -54,7 +54,7 @@ export default function WeatherForecast() {
   }, []);
 
   const getWeatherIcon = (weather, index) => {
-    const isNightTime = new Date().getHours() >= 18 || new Date().getHours() <= 6;
+    const isNightTime = new Date().getHours() >= 20 || new Date().getHours() <= 5;
     
     switch (weather.toLowerCase()) {
       case 'sunny':
@@ -75,7 +75,7 @@ export default function WeatherForecast() {
   };
 
   const getWeatherGradient = (weather, index) => {
-    const isNightTime = new Date().getHours() >= 18 || new Date().getHours() <= 6;
+    const isNightTime = new Date().getHours() >= 20 || new Date().getHours() <= 5;
     
     // For night time, use darker, more muted colors
     if (isNightTime) {
@@ -117,7 +117,7 @@ export default function WeatherForecast() {
   };
 
   const getWeatherMessage = (weather) => {
-    const isNightTime = new Date().getHours() >= 18 || new Date().getHours() <= 6;
+    const isNightTime = new Date().getHours() >= 20 || new Date().getHours() <= 5;
     
     if (isNightTime) {
       switch (weather.toLowerCase()) {
