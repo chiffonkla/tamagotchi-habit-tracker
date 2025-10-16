@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Menu, Settings, Home, User, Users, Trophy, Bell, HelpCircle, LogOut } from 'lucide-react'
+import { Menu, Settings, Home, User, Users, Trophy, Bell, HelpCircle, LogOut, Cloud } from 'lucide-react'
 import SettingsModal from '../SettingsModal'
 
 export default function Layout({ children, userName }) {
@@ -71,6 +71,7 @@ export default function Layout({ children, userName }) {
 
   const menuItems = [
     { icon: <Home size={20} />, label: 'Dashboard', href: '/dashboard' },
+    { icon: <Cloud size={20} />, label: 'Weather Forecast', href: '/forecast' },
     { icon: <User size={20} />, label: 'Profile', href: '/profile' },
     { icon: <Users size={20} />, label: 'Friends', href: '/friends' },
     { icon: <Trophy size={20} />, label: 'Leaderboard', href: '/leaderboard' },
@@ -152,9 +153,15 @@ export default function Layout({ children, userName }) {
                 <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
                   <span className="text-purple-600 font-medium">{userName[0]}</span>
                 </div>
-                <div>
+                <div className="flex-1">
                   <p className="font-medium">{userName}</p>
-                  <p className="text-sm text-gray-500">View Profile</p>
+                  <Link 
+                    to="/profile" 
+                    className="text-sm text-gray-500 hover:text-purple-600 transition-colors cursor-pointer"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    View Profile
+                  </Link>
                 </div>
               </div>
             </div>
