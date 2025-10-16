@@ -134,6 +134,7 @@ export default function MobileLayout({ children, userName, onToggleSettings }) {
 
   const menuItems = [
     { icon: <Home size={20} />, label: 'Dashboard', action: () => navigate('/dashboard') },
+    { icon: <Cloud size={20} />, label: 'Weather Forecast', action: () => navigate('/forecast') },
     { icon: <User size={20} />, label: 'Profile', action: () => navigate('/profile') },
     { icon: <Users size={20} />, label: 'Friends', action: () => navigate('/friends') },
     { icon: <Trophy size={20} />, label: 'Leaderboard', action: () => navigate('/leaderboard') },
@@ -171,9 +172,17 @@ export default function MobileLayout({ children, userName, onToggleSettings }) {
                   <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
                     <span className="text-purple-600 font-medium">{userName[0]}</span>
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <p className="font-medium">{userName}</p>
-                    <p className="text-sm text-gray-500">View Profile</p>
+                    <button 
+                      onClick={() => {
+                        navigate('/profile');
+                        setShowMenu(false);
+                      }}
+                      className="text-sm text-gray-500 hover:text-purple-600 transition-colors cursor-pointer"
+                    >
+                      View Profile
+                    </button>
                   </div>
                 </div>
               </div>
