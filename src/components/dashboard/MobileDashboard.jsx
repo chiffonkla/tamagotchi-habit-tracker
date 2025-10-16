@@ -48,6 +48,13 @@ import snowBg from "../../assets/weather_bg/snowy.gif";
 import sunnyBg from "../../assets/weather_bg/sunny.jpeg";
 import windyBg from "../../assets/weather_bg/windy.gif";
 import thunderBg from "../../assets/weather_bg/thunder.gif";
+// Night-time backgrounds
+import clearNightBg from "../../assets/weather_bg/clear-night.jpeg";
+import cloudyNightBg from "../../assets/weather_bg/cloudy-night.gif";
+import rainyNightBg from "../../assets/weather_bg/rainy-night.gif";
+import snowyNightBg from "../../assets/weather_bg/snowy-night.gif";
+import thunderNightBg from "../../assets/weather_bg/thunder-night.gif";
+import windyNightBg from "../../assets/weather_bg/windy-night.gif";
 // Import time of day backgrounds
 import predawnNight from "../../assets/timeofday/predawn-night.jpg";
 import dawn from "../../assets/timeofday/dawn.png";
@@ -116,8 +123,53 @@ export default function MobileDashboard() {
   const [dailyMessage, setDailyMessage] = useState("");
 
   const getWeatherMessage = (weather) => {
+    const isNightTime = ["night", "midnight", "predawn", "twilight"].includes(timeOfDay);
+    const isDawnDusk = ["dawn", "sunrise", "sunset", "twilight"].includes(timeOfDay);
     const weatherType = weather.toLowerCase();
     
+    if (isNightTime) {
+      switch (weatherType) {
+        case 'sunny':
+          return "Your pet is gazing at the starry night sky!";
+        case 'rainy':
+          return "Your pet is listening to the peaceful rain at night!";
+        case 'cloudy':
+          return "Your pet is enjoying the cool night air!";
+        case 'snowy':
+          return "Your pet is watching the snowflakes dance in the moonlight!";
+        case 'windy':
+          return "Your pet's fur is gently swaying in the night breeze!";
+        case 'thunder':
+          return "Your pet is safe from the night storm!";
+        case 'foggy':
+          return "Your pet is exploring the misty night!";
+        default:
+          return "Your pet is enjoying the peaceful night!";
+      }
+    }
+    
+    if (isDawnDusk) {
+      switch (weatherType) {
+        case 'sunny':
+          return "Your pet is watching the beautiful sky at dawn/dusk!";
+        case 'rainy':
+          return "Your pet is staying cozy during the gentle rain!";
+        case 'cloudy':
+          return "Your pet is enjoying the soft light of dawn/dusk!";
+        case 'snowy':
+          return "Your pet is watching the snow in the golden light!";
+        case 'windy':
+          return "Your pet is feeling the gentle breeze!";
+        case 'thunder':
+          return "Your pet is safe from the storm!";
+        case 'foggy':
+          return "Your pet is exploring the misty dawn/dusk!";
+        default:
+          return "Your pet is enjoying the beautiful sky!";
+      }
+    }
+    
+    // Day time messages
     switch (weatherType) {
       case 'sunny':
         return "Your pet is basking in the sunshine!";
@@ -379,6 +431,33 @@ export default function MobileDashboard() {
         setTimeOfDay("twilight")
       } else {
         setTimeOfDay("night")
+      }
+
+      // Update weather background based on current time and weather
+      const isNightTime = currentHour >= 20 || currentHour <= 5;
+      const weather = currentWeather.toLowerCase();
+      
+      switch (weather) {
+        case "rainy":
+          setWeatherImage(isNightTime ? rainyNightBg : rainyBg);
+          break;
+        case "cloudy":
+          setWeatherImage(isNightTime ? cloudyNightBg : cloudyBg);
+          break;
+        case "snowy":
+          setWeatherImage(isNightTime ? snowyNightBg : snowBg);
+          break;
+        case "sunny":
+          setWeatherImage(isNightTime ? clearNightBg : sunnyBg);
+          break;
+        case "windy":
+          setWeatherImage(isNightTime ? windyNightBg : windyBg);
+          break;
+        case "thunder":
+          setWeatherImage(isNightTime ? thunderNightBg : thunderBg);
+          break;
+        default:
+          setWeatherImage(isNightTime ? clearNightBg : sunnyBg);
       }
 
       // Set season based on month
@@ -867,6 +946,7 @@ export default function MobileDashboard() {
         navigate('/dashboard');
       }
     }},
+    { icon: <Cloud size={20} />, label: 'Weather Forecast', action: () => navigate('/forecast') },
     { icon: <User size={20} />, label: 'Profile', action: () => navigate('/profile') },
     { icon: <Users size={20} />, label: 'Friends', action: () => navigate('/friends') },
     { icon: <Trophy size={20} />, label: 'Leaderboard', action: () => navigate('/leaderboard') },
@@ -1091,27 +1171,31 @@ export default function MobileDashboard() {
 
         setCurrentWeather(formattedWeather);
 
+        // Check if it's night time for background selection
+        const currentHour = new Date().getHours();
+        const isNightTime = currentHour >= 20 || currentHour <= 5;
+        
         switch (weather.toLowerCase()) {
           case "rainy":
-            setWeatherImage(rainyBg);
+            setWeatherImage(isNightTime ? rainyNightBg : rainyBg);
             break;
           case "cloudy":
-            setWeatherImage(cloudyBg);
+            setWeatherImage(isNightTime ? cloudyNightBg : cloudyBg);
             break;
           case "snowy":
-            setWeatherImage(snowBg);
+            setWeatherImage(isNightTime ? snowyNightBg : snowBg);
             break;
           case "sunny":
-            setWeatherImage(sunnyBg);
+            setWeatherImage(isNightTime ? clearNightBg : sunnyBg);
             break;
           case "windy":
-            setWeatherImage(windyBg);
+            setWeatherImage(isNightTime ? windyNightBg : windyBg);
             break;
           case "thunder":
-            setWeatherImage(thunderBg);
+            setWeatherImage(isNightTime ? thunderNightBg : thunderBg);
             break;
           default:
-            setWeatherImage(sunnyBg);
+            setWeatherImage(isNightTime ? clearNightBg : sunnyBg);
         }
       } catch (error) {
         console.error("Error fetching weather data:", error);
@@ -1119,6 +1203,15 @@ export default function MobileDashboard() {
     };
 
     fetchWeather();
+  }, []);
+
+  // Refresh weather data every 30 minutes to keep it in sync
+  useEffect(() => {
+    const weatherInterval = setInterval(() => {
+      fetchWeather();
+    }, 30 * 60 * 1000); // 30 minutes
+
+    return () => clearInterval(weatherInterval);
   }, []);
 
   const handleReset = async () => {
@@ -1258,9 +1351,17 @@ export default function MobileDashboard() {
                   <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
                     <span className="text-purple-600 font-medium">{userName[0]}</span>
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <p className="font-medium">{userName}</p>
-                    <p className="text-sm text-gray-500">View Profile</p>
+                    <button 
+                      onClick={() => {
+                        navigate('/profile');
+                        setShowMenu(false);
+                      }}
+                      className="text-sm text-gray-500 hover:text-purple-600 transition-colors cursor-pointer"
+                    >
+                      View Profile
+                    </button>
                   </div>
                 </div>
               </div>
