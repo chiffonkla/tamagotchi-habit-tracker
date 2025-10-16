@@ -1,11 +1,14 @@
 import { useState } from 'react'
-import { Menu, Home, Settings, User, LogOut, HelpCircle, Bell, Users, Trophy } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Menu, Home, Settings, User, LogOut, HelpCircle, Bell, Users, Trophy, Cloud } from 'lucide-react'
 
 export default function SideMenu({ userName }) {
+  const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
 
   const menuItems = [
     { icon: <Home size={20} />, label: 'Home', href: '/dashboard' },
+    { icon: <Cloud size={20} />, label: 'Weather Forecast', href: '/forecast' },
     { icon: <User size={20} />, label: 'Profile', href: '/profile' },
     { icon: <Users size={20} />, label: 'Friends', href: '/friends' },
     { icon: <Trophy size={20} />, label: 'Leaderboard', href: '/leaderboard' },
@@ -40,9 +43,17 @@ export default function SideMenu({ userName }) {
             <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
               <span className="text-purple-600 font-medium">{userName[0]}</span>
             </div>
-            <div>
+            <div className="flex-1">
               <p className="font-medium">{userName}</p>
-              <p className="text-sm text-gray-500">View Profile</p>
+              <button 
+                onClick={() => {
+                  navigate('/profile');
+                  setIsOpen(false);
+                }}
+                className="text-sm text-gray-500 hover:text-purple-600 transition-colors cursor-pointer"
+              >
+                View Profile
+              </button>
             </div>
           </div>
         </div>
