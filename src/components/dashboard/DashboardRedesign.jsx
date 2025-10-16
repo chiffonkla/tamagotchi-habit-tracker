@@ -25,6 +25,13 @@ import snowBg from "../../assets/weather_bg/snowy.gif";
 import sunnyBg from "../../assets/weather_bg/sunny.jpeg";
 import windyBg from "../../assets/weather_bg/windy.gif";
 import thunderBg from "../../assets/weather_bg/thunder.gif";
+// Night-time backgrounds
+import clearNightBg from "../../assets/weather_bg/clear-night.jpg";
+import cloudyNightBg from "../../assets/weather_bg/cloudy-night.gif";
+import rainyNightBg from "../../assets/weather_bg/rainy-night.gif";
+import snowyNightBg from "../../assets/weather_bg/snowy-night.gif";
+import thunderNightBg from "../../assets/weather_bg/thunder.gif";
+import windyNightBg from "../../assets/weather_bg/cloudy.gif";
 import { Check, Pencil, Trash2 } from "lucide-react";
 import { Calendar } from "lucide-react";
 import ShareModal from "../ShareModal";
@@ -653,27 +660,31 @@ export default function DashboardRedesign() {
 
         setCurrentWeather(formattedWeather);
 
+        // Check if it's night time for background selection
+        const currentHour = new Date().getHours();
+        const isNightTime = currentHour >= 18 || currentHour <= 6;
+        
         switch (weather.toLowerCase()) {
           case "rainy":
-            setWeatherImage(rainyBg);
+            setWeatherImage(isNightTime ? rainyNightBg : rainyBg);
             break;
           case "cloudy":
-            setWeatherImage(cloudyBg);
+            setWeatherImage(isNightTime ? cloudyNightBg : cloudyBg);
             break;
           case "snowy":
-            setWeatherImage(snowBg);
+            setWeatherImage(isNightTime ? snowyNightBg : snowBg);
             break;
           case "sunny":
-            setWeatherImage(sunnyBg);
+            setWeatherImage(isNightTime ? clearNightBg : sunnyBg);
             break;
           case "windy":
-            setWeatherImage(windyBg);
+            setWeatherImage(isNightTime ? windyNightBg : windyBg);
             break;
           case "thunder":
-            setWeatherImage(thunderBg);
+            setWeatherImage(isNightTime ? thunderNightBg : thunderBg);
             break;
           default:
-            setWeatherImage(sunnyBg);
+            setWeatherImage(isNightTime ? clearNightBg : sunnyBg);
         }
       } catch (error) {
         console.error("Error fetching weather data:", error);
