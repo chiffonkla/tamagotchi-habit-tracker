@@ -13,6 +13,7 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app, supports_credentials=True, origins=[
     "https://tama-habit.netlify.app",  
+    "https://tama-habit.onrender.com",
     "https://*.netlify.app",  # For other Netlify deployments
     "http://localhost:5173", # For local frontend development
     "http://127.0.0.1:5173",  # Optional: For localhost with IP
