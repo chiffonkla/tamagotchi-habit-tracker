@@ -662,7 +662,7 @@ export default function DashboardRedesign() {
 
         // Check if it's night time for background selection
         const currentHour = new Date().getHours();
-        const isNightTime = currentHour >= 18 || currentHour <= 6;
+        const isNightTime = currentHour >= 20 || currentHour <= 5;
         
         switch (weather.toLowerCase()) {
           case "rainy":
