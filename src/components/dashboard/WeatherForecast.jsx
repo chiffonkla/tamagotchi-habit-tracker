@@ -34,7 +34,7 @@ export default function WeatherForecast() {
           try {
             const errData = await response.json();
             if (errData?.message) msg = errData.message;
-          } catch (_) 
+          } catch (_) {}
           if (msg.toLowerCase().includes("geolocation") || msg.toLowerCase().includes("location")) {
             msg = "No location saved. Enable location in Settings to see your local forecast.";
           }
@@ -508,3 +508,4 @@ export default function WeatherForecast() {
     </div>
   );
 }
+
