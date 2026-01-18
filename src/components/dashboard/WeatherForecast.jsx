@@ -30,14 +30,22 @@ export default function WeatherForecast() {
         );
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          let msg = "Failed to load weather forecast";
+          try {
+            const errData = await response.json();
+            if (errData?.message) msg = errData.message;
+          } catch (_) 
+          if (msg.toLowerCase().includes("geolocation") || msg.toLowerCase().includes("location")) {
+            msg = "No location saved. Enable location in Settings to see your local forecast.";
+          }
+          throw new Error(msg);
         }
 
         const data = await response.json();
         setForecast(data.forecast || []);
       } catch (error) {
         console.error("Error fetching forecast data:", error);
-        setError("Failed to load weather forecast");
+        setError(error?.message || "Failed to load weather forecast");
       } finally {
         setLoading(false);
       }
